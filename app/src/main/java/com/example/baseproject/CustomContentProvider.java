@@ -3,6 +3,8 @@ package com.example.baseproject;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -11,7 +13,13 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 
+import com.example.baseproject.model.Account;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.regex.Matcher;
 
 public class CustomContentProvider extends ContentProvider {
@@ -28,43 +36,70 @@ public class CustomContentProvider extends ContentProvider {
     public static final int MANAGE_ACCOUNT = 1;
 
     public static final UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
+
     static {
         URI_MATCHER.addURI(AUTHORITY, PATH_ACCOUNT, MANAGE_ACCOUNT);
     }
 
     public static final String CONTENT_TYPE_ACCOUNT = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + PATH_ACCOUNT;
 
-    String a = "nong dep trai";
+    private Account mAccount;
+    private SharedPreferences mSharePre;
 
     @Override
     public boolean onCreate() {
-
+        try {
+            mSharePre = getEncryptedSharedPreferences();
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        Log.d("ptit", "query: ");
         switch (URI_MATCHER.match(uri)) {
             case MANAGE_ACCOUNT: {
-                String[] columns = new String[]{"userName"};
-                MatrixCursor matrixCursor = new MatrixCursor(columns);
-                matrixCursor.addRow(new Object[]{a});
-                return matrixCursor;
+                return handleGetData();
             }
         }
         return null;
     }
 
-    //Uri = Uri.parse("content://com.example.baseproject/ACCOUNT)")
+    private Cursor handleGetData() {
+        getData();
+        String[] columns = new String[]{
+                Constants.KEY_WEBSITE,
+                Constants.KEY_USERNAME,
+                Constants.KEY_EMAIL,
+                Constants.KEY_ADDRESS,
+        };
+        MatrixCursor matrixCursor = new MatrixCursor(columns);
+        matrixCursor.addRow(new Object[]{
+                mAccount.getWebsite(),
+                mAccount.getUserName(),
+                mAccount.getEmail(),
+                mAccount.getAddress()
+        });
+        return matrixCursor;
+    }
+
+    private void getData() {
+        mAccount = new Account(
+                mSharePre.getString(Constants.KEY_WEBSITE, Constants.DEFAULT_VALUE_STRING),
+                mSharePre.getString(Constants.KEY_USERNAME, Constants.DEFAULT_VALUE_STRING),
+                mSharePre.getString(Constants.KEY_EMAIL, Constants.DEFAULT_VALUE_STRING),
+                mSharePre.getString(Constants.KEY_ADDRESS, Constants.DEFAULT_VALUE_STRING)
+        );
+
+    }
 
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
-//        switch (URI_MATCHER.match(uri)) {
-//            case MANAGE_ACCOUNT: return CONTENT_TYPE_ACCOUNT;
-//        }
         return null;
     }
 
@@ -82,5 +117,18 @@ public class CustomContentProvider extends ContentProvider {
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
         return 0;
+    }
+
+    public SharedPreferences getEncryptedSharedPreferences() throws GeneralSecurityException, IOException {
+        MasterKey masterKeyAlias = new MasterKey.Builder(getContext()).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build();
+        SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
+                getContext(),
+                Constants.FILE_NAME,
+                masterKeyAlias,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        );
+
+        return sharedPreferences;
     }
 }

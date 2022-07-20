@@ -3,8 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/AndroidApplication/SharePreference/BaseProject/app/src/main/res/layout/activity_main.xml" value="0.11302083333333333" />
+        <entry key="..\:/AndroidApplication/SharePreference/BaseProject/app/src/main/res/drawable/bg_edt.xml" value="0.126" />
+        <entry key="..\:/AndroidApplication/SharePreference/BaseProject/app/src/main/res/layout/activity_main.xml" value="0.19487179487179487" />
         <entry key="..\:/AndroidApplication/SharePreference/BaseProject/app/src/main/res/layout/activity_main2.xml" value="0.11145833333333334" />
+        <entry key="..\:/AndroidApplication/SharePreference/BaseProject/myapplication/src/main/res/layout/activity_main.xml" value="0.264" />
+        <entry key="..\:/AndroidApplication/SharePreference/BaseProject/myapplication/src/main/res/layout/new_app_widget.xml" value="0.25416666666666665" />
       </map>
     </option>
   </component>
