@@ -41,7 +41,6 @@ public class CustomContentProvider extends ContentProvider {
         URI_MATCHER.addURI(AUTHORITY, PATH_ACCOUNT, MANAGE_ACCOUNT);
     }
 
-    public static final String CONTENT_TYPE_ACCOUNT = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + PATH_ACCOUNT;
 
     private Account mAccount;
     private SharedPreferences mSharePre;
@@ -49,7 +48,7 @@ public class CustomContentProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         try {
-            mSharePre = getEncryptedSharedPreferences();
+            mSharePre = SharePreManager.getEncryptedSharedPreferences(getContext(), Constants.FILE_NAME);
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -117,18 +116,5 @@ public class CustomContentProvider extends ContentProvider {
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
         return 0;
-    }
-
-    public SharedPreferences getEncryptedSharedPreferences() throws GeneralSecurityException, IOException {
-        MasterKey masterKeyAlias = new MasterKey.Builder(getContext()).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build();
-        SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
-                getContext(),
-                Constants.FILE_NAME,
-                masterKeyAlias,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        );
-
-        return sharedPreferences;
     }
 }
